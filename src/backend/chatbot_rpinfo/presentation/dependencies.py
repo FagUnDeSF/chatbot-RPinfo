@@ -9,12 +9,17 @@ from fastapi import Depends, Header, HTTPException, Request, status
 from chatbot_rpinfo.application.services import (
     AuditService,
     AuthenticationError,
+    ErpReadonlyService,
     HealthService,
     InternalAuthService,
 )
 from chatbot_rpinfo.config import AppSettings, load_settings
 from chatbot_rpinfo.domain.entities import AuthenticatedPrincipal
-from chatbot_rpinfo.domain.repositories import AuditEventRepository, InternalUserRepository
+from chatbot_rpinfo.domain.repositories import (
+    AuditEventRepository,
+    ErpReadonlyRepository,
+    InternalUserRepository,
+)
 
 
 @lru_cache(maxsize=1)
@@ -34,6 +39,10 @@ def get_audit_event_repository(request: Request) -> AuditEventRepository:
     return cast(AuditEventRepository, request.app.state.audit_event_repository)
 
 
+def get_erp_readonly_repository(request: Request) -> ErpReadonlyRepository:
+    return cast(ErpReadonlyRepository, request.app.state.erp_readonly_repository)
+
+
 def get_token_source(request: Request) -> Mapping[str, str]:
     return cast(Mapping[str, str], request.app.state.token_source)
 
@@ -49,6 +58,18 @@ def get_audit_service(
     audit_event_repository: Annotated[AuditEventRepository, Depends(get_audit_event_repository)],
 ) -> AuditService:
     return AuditService(audit_event_repository=audit_event_repository)
+
+
+def get_erp_readonly_service(
+    settings: Annotated[AppSettings, Depends(get_settings)],
+    erp_repository: Annotated[ErpReadonlyRepository, Depends(get_erp_readonly_repository)],
+    audit_service: Annotated[AuditService, Depends(get_audit_service)],
+) -> ErpReadonlyService:
+    return ErpReadonlyService(
+        settings=settings,
+        repository=erp_repository,
+        audit_service=audit_service,
+    )
 
 
 def get_current_principal(

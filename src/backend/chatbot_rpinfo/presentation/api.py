@@ -9,10 +9,14 @@ from chatbot_rpinfo.config import AppSettings, load_settings
 from chatbot_rpinfo.domain.entities import InternalUser
 from chatbot_rpinfo.infrastructure.repositories import (
     InMemoryAuditEventRepository,
+    InMemoryErpReadonlyRepository,
     InMemoryInternalUserRepository,
 )
 from chatbot_rpinfo.presentation.controllers.audit_controller import router as audit_router
 from chatbot_rpinfo.presentation.controllers.auth_controller import router as auth_router
+from chatbot_rpinfo.presentation.controllers.erp_readonly_controller import (
+    router as erp_readonly_router,
+)
 from chatbot_rpinfo.presentation.controllers.health_controller import router as health_router
 from chatbot_rpinfo.presentation.dependencies import get_settings
 
@@ -40,9 +44,14 @@ def create_app(
     )
     app.state.internal_user_repository = InMemoryInternalUserRepository(internal_users)
     app.state.audit_event_repository = InMemoryAuditEventRepository()
+    app.state.erp_readonly_repository = InMemoryErpReadonlyRepository.default(
+        timeout_seconds=resolved_settings.erp_readonly_timeout_seconds,
+        max_rows=resolved_settings.erp_readonly_max_rows,
+    )
     app.state.token_source = os.environ if token_source is None else token_source
     app.dependency_overrides[get_settings] = lambda: resolved_settings
     app.include_router(auth_router, prefix=resolved_settings.api_prefix)
     app.include_router(audit_router, prefix=resolved_settings.api_prefix)
+    app.include_router(erp_readonly_router, prefix=resolved_settings.api_prefix)
     app.include_router(health_router, prefix=resolved_settings.api_prefix)
     return app

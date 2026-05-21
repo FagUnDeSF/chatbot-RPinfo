@@ -24,6 +24,8 @@ class AppSettings(BaseModel):
     environment: str = Field(default="local", min_length=1)
     version: str = Field(default="0.1.0", min_length=1)
     api_prefix: str = Field(default="/api/v1", pattern=r"^/[a-z0-9/_-]+$")
+    erp_readonly_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
+    erp_readonly_max_rows: int = Field(default=100, ge=1, le=1000)
     secret_locations: tuple[str, ...] = Field(
         default=(
             "ERP_TESTE_DATABASE_URL",
@@ -70,4 +72,6 @@ def load_settings(environ: Mapping[str, str] | None = None) -> AppSettings:
         app_name=source.get("APP_NAME", "chatbot-RPinfo"),
         environment=source.get("APP_ENV", "local"),
         version=source.get("APP_VERSION", "0.1.0"),
+        erp_readonly_timeout_seconds=float(source.get("ERP_READONLY_TIMEOUT_SECONDS", "5.0")),
+        erp_readonly_max_rows=int(source.get("ERP_READONLY_MAX_ROWS", "100")),
     )
