@@ -39,6 +39,12 @@ def test_settings_expose_secret_locations_without_loading_values() -> None:
         }
     )
 
-    assert settings.secret_locations == ("ERP_TESTE_DATABASE_URL", "AI_PROVIDER_API_KEY")
+    assert settings.secret_locations == (
+        "ERP_TESTE_DATABASE_URL",
+        "AI_PROVIDER_API_KEY",
+        "INTERNAL_AUTH_DIRECAO_TOKEN",
+        "INTERNAL_AUTH_COMERCIAL_TOKEN",
+        "INTERNAL_AUTH_PREVENCAO_TOKEN",
+        "INTERNAL_AUTH_ADMIN_TECNICO_TOKEN",
+    )
     assert "not-read-by-bootstrap" not in settings.model_dump_json()
-
