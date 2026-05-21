@@ -1,0 +1,26 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.bak
+*.log
+
+# Escritorio/dossie interno: nao publicar no repositorio publico da aplicacao.
+case-study/
+docs/
+equipe/
+handoffs/
+questionarios/
