@@ -120,6 +120,42 @@ def test_query_audit_rejects_raw_payload_field(client: TestClient) -> None:
     assert response.status_code == 422
 
 
+@pytest.mark.parametrize(
+    ("idempotency_key", "intent"),
+    [
+        ("audit-sensitive-cpf-raw", "consulta CPF 00000000000"),
+        ("audit-sensitive-cpf-fmt", "consulta CPF 000.000.000-00"),
+        ("audit-sensitive-cnpj-raw", "consulta CNPJ 00000000000000"),
+        ("audit-sensitive-cnpj-fmt", "consulta CNPJ 00.000.000/0000-00"),
+        ("audit-sensitive-phone", "contato WhatsApp (11) 99999-9999"),
+        ("audit-sensitive-phone-e164", "contato 5511999999999"),
+    ],
+)
+def test_query_audit_rejects_sensitive_identifiers_in_intent(
+    client: TestClient,
+    idempotency_key: str,
+    intent: str,
+) -> None:
+    response = client.post(
+        "/api/v1/audit/query-events",
+        headers={
+            "X-Internal-Username": "rp-direcao",
+            "X-Internal-Token": "test-direcao-token",
+            "Idempotency-Key": idempotency_key,
+        },
+        json={
+            "intent": intent,
+            "source": "erp_readonly",
+            "response_type": "answered",
+            "insufficient_data": False,
+        },
+    )
+
+    assert response.status_code == 422
+    assert "sensitive_identifier_detected" in response.text
+    assert intent not in response.text
+
+
 def test_rbac_blocks_profile_from_unapproved_source(client: TestClient) -> None:
     response = client.post(
         "/api/v1/audit/query-events",

@@ -3,7 +3,9 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from chatbot_rpinfo.config import AppSettings, load_settings
 from chatbot_rpinfo.domain.entities import InternalUser
@@ -19,6 +21,23 @@ from chatbot_rpinfo.presentation.controllers.erp_readonly_controller import (
 )
 from chatbot_rpinfo.presentation.controllers.health_controller import router as health_router
 from chatbot_rpinfo.presentation.dependencies import get_settings
+
+_SENSITIVE_ERROR_TAG = "sensitive_identifier_detected"
+
+
+def _redact_validation_errors(
+    errors: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    redacted: list[dict[str, object]] = []
+    for error in errors:
+        message = str(error.get("msg", ""))
+        if _SENSITIVE_ERROR_TAG in message:
+            sanitized = {k: v for k, v in error.items() if k not in {"input", "ctx"}}
+            sanitized["input"] = "<redacted:sensitive_identifier>"
+            redacted.append(sanitized)
+        else:
+            redacted.append(error)
+    return redacted
 
 
 def create_app(
@@ -50,6 +69,18 @@ def create_app(
     )
     app.state.token_source = os.environ if token_source is None else token_source
     app.dependency_overrides[get_settings] = lambda: resolved_settings
+
+    @app.exception_handler(RequestValidationError)
+    async def _redact_sensitive_validation_errors(
+        request: Request,
+        exc: RequestValidationError,
+    ) -> JSONResponse:
+        raw_errors: list[dict[str, object]] = [dict(error) for error in exc.errors()]
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={"detail": _redact_validation_errors(raw_errors)},
+        )
+
     app.include_router(auth_router, prefix=resolved_settings.api_prefix)
     app.include_router(audit_router, prefix=resolved_settings.api_prefix)
     app.include_router(erp_readonly_router, prefix=resolved_settings.api_prefix)

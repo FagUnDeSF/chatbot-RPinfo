@@ -10,6 +10,7 @@ from chatbot_rpinfo.domain.entities import (
     AuthenticatedPrincipal,
     InternalRole,
 )
+from chatbot_rpinfo.domain.policies import assert_no_sensitive_identifiers
 from chatbot_rpinfo.domain.repositories import AuditEventRepository
 
 
@@ -32,6 +33,8 @@ class AuditService:
     ) -> AuditEvent:
         if not self._can_record_source(principal.user.role, source):
             raise AuditAuthorizationError("role_cannot_record_source")
+
+        assert_no_sensitive_identifiers(intent)
 
         event = AuditEvent(
             event_id=str(uuid4()),

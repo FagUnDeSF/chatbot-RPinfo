@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from chatbot_rpinfo.domain.entities import AuditEvent, AuditResponseType, AuditSource, InternalRole
+from chatbot_rpinfo.domain.policies import assert_no_sensitive_identifiers
 
 
 class AuditQueryEventRequest(BaseModel):
@@ -14,6 +15,11 @@ class AuditQueryEventRequest(BaseModel):
     source: AuditSource
     response_type: AuditResponseType
     insufficient_data: bool
+
+    @field_validator("intent")
+    @classmethod
+    def _intent_must_not_carry_sensitive_identifiers(cls, value: str) -> str:
+        return assert_no_sensitive_identifiers(value)
 
 
 class AuditEventResponse(BaseModel):
