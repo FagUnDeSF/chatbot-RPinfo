@@ -13,15 +13,15 @@ from chatbot_rpinfo.domain.repositories import ErpReadonlyRepository
 
 
 class ErpReadonlyError(Exception):
-    pass
+    """Base error for ERP read-only query execution."""
 
 
 class ErpReadonlyQueryNotAllowedError(ErpReadonlyError):
-    pass
+    """Raised when a query name is outside the configured allowlist."""
 
 
 class ErpReadonlyLimitError(ErpReadonlyError):
-    pass
+    """Raised when a query requests more rows than the configured limit."""
 
 
 class ErpReadonlyService:
