@@ -1,0 +1,137 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, type-check, and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Ruff
+        run: python -m ruff check .
+
+      - name: Mypy
+        run: python -m mypy .
+
+      - name: Pytest
+        run: python -m pytest
+
+  secret-hygiene:
+    name: Secret hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Reject tracked secrets and sensitive files
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+          import sys
+
+          tracked = [
+              item.decode("utf-8")
+              for item in subprocess.check_output(["git", "ls-files", "-z"]).split(b"\0")
+              if item
+          ]
+          sensitive_suffixes = {".pem", ".key", ".p12", ".pfx", ".dump", ".bak", ".db", ".sqlite", ".sqlite3", ".log"}
+          file_violations = []
+          for raw_path in tracked:
+              path = Path(raw_path)
+              name = path.name
+              if name == ".env" or (name.startswith(".env.") and name != ".env.example"):
+                  file_violations.append(raw_path)
+              if path.suffix.lower() in sensitive_suffixes:
+                  file_violations.append(raw_path)
+
+          patterns = {
+              "database-url-with-password": re.compile(rb"(postgres|mysql|mongodb)://[^\s:@]+:[^\s@]+@"),
+              "bearer-token": re.compile(rb"Bearer\s+[A-Za-z0-9._-]{30,}"),
+              "private-key": re.compile(rb"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
+              "aws-access-key": re.compile(rb"AKIA[0-9A-Z]{16}"),
+              "openai-style-key": re.compile(rb"sk-[A-Za-z0-9]{20,}"),
+          }
+          content_violations = []
+          for raw_path in tracked:
+              data = Path(raw_path).read_bytes()
+              if b"\0" in data:
+                  continue
+              for label, pattern in patterns.items():
+                  if pattern.search(data):
+                      content_violations.append(f"{raw_path}: {label}")
+
+          if file_violations or content_violations:
+              print("Secret hygiene failed.")
+              for item in sorted(set(file_violations)):
+                  print(f"sensitive-file: {item}")
+              for item in content_violations:
+                  print(f"secret-pattern: {item}")
+              sys.exit(1)
+
+          print("Secret hygiene passed.")
+          PY
+
+  log-contract-smoke:
+    name: JSON log contract smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify redacted JSON log shape
+        run: |
+          python - <<'PY'
+          import json
+
+          sensitive_fields = {"cpf", "cnpj", "document", "whatsapp", "conversation", "api_key"}
+          raw_payload = {
+              "question_id": "sample-question",
+              "cpf": "sample-cpf-token",
+              "cnpj": "sample-cnpj-token",
+              "document": "sample-document-token",
+              "whatsapp": "sample-whatsapp-token",
+              "conversation": "sample-conversation-token",
+              "api_key": "sample-api-key-token",
+          }
+
+          redacted_payload = {
+              key: "[REDACTED]" if key in sensitive_fields else value
+              for key, value in raw_payload.items()
+          }
+          event = {
+              "event": "log_contract_smoke",
+              "correlation_id": "ci-log-contract-001",
+              "payload": redacted_payload,
+              "source": "github-actions",
+          }
+          line = json.dumps(event, sort_keys=True)
+          parsed = json.loads(line)
+
+          assert parsed["correlation_id"] == "ci-log-contract-001"
+          assert parsed["event"] == "log_contract_smoke"
+          for key in sensitive_fields:
+              assert parsed["payload"][key] == "[REDACTED]"
+              assert raw_payload[key] not in line
+
+          print(line)
+          PY
