@@ -1,0 +1,122 @@
+# Trace logging config - qa_orchestrator v0.2.0
+#
+# Cand origem: S2-C07 (Sprint 002). Bump de v0.1.0 para refletir promocao
+# de stub-deterministico para LLM real Claude Haiku 4.5 + V5 NIVEL-3 audit
+# metadado expandido (17 V5 §5.1 + 3 ajustes Security cross-security).
+#
+# Backend: in-process via AuditService (chatbot_rpinfo.application.services
+# .audit_service) sobre InMemoryAuditEventRepository (Sprint 002 prova
+# controlada Fase 1). Provider remoto (Langfuse/LangSmith) entra em S2-C08
+# observabilidade.
+
+trace_id: qa_orchestrator_trace
+prompt_ref: prompts/qa_orchestrator_v0.2.0.md
+sprint_origem: "002"
+cand_origem: S2-C07
+adr_referencia: ADR-0005
+v5_guarda_em_camadas: equipe/ai-engineer-senior/guarda-em-camadas-V5.md
+politica_security_cross: handoffs/2026-05-22_security-engineer-senior_para_ai-engineer-senior_guarda-em-camadas-cross-security-resposta.md
+
+backend_atual:
+  tipo: in-process-audit-service
+  repository: chatbot_rpinfo.infrastructure.repositories.InMemoryAuditEventRepository
+  fonte_canonica: chatbot_rpinfo.application.services.audit_service.AuditService.record_query_event
+  source_enum: AuditSource.QA_ORCHESTRATOR
+
+# CG-04 absoluta: nenhum campo bruto (question literal, output completo do
+# LLM) e persistido. Apenas metadado estrutural NIVEL-3 V5 §5.1.
+metadados_registrados_por_chamada:
+  # --- Canonicos S001 preservados (8) ---
+  - event_id            # uuid4 gerado no AuditService
+  - username
+  - role
+  - occurred_at         # UTC
+  - intent              # "qa_orchestrator:<kind>" ou "qa_orchestrator:blocked"
+  - source              # AuditSource.QA_ORCHESTRATOR
+  - response_type       # answered | insufficient_data | forbidden | error
+  - insufficient_data   # bool
+
+  # --- NIVEL-3 V5 §5.1 expandidos (17) ---
+  - provider_used               # anthropic-haiku-4-5 | anthropic-sonnet-4-5 | stub-deterministico
+  - model_used                  # claude-haiku-4-5-20251001 | claude-sonnet-4-5-20250929 | null
+  - prompt_version              # "0.2.0"
+  - cache_hit                   # bool
+  - cache_read_tokens           # int
+  - cache_write_tokens          # int
+  - input_tokens_total          # int
+  - output_tokens_total         # int
+  - cost_usd                    # Decimal(10,8)
+  - latency_ms_total            # int
+  - latency_ms_provider_call    # int
+  - escalation_requested        # bool
+  - escalation_granted          # bool
+  - pii_detectado_pre_egress    # bool (NIVEL-1 §3.1 bloqueio pre-LLM)
+  - pii_redacted_pos_egress     # bool + count + categorias (NIVEL-1 §3.2 mask pos-LLM)
+  - content_policy_blocked      # bool + pattern_id (NIVEL-2 §4)
+  - fallback_active             # bool + fallback_reason enumerado (NIVEL-0 §2.1 / NIVEL-4 §6)
+
+  # --- Ajustes Security cross-security (3) ---
+  - request_id                  # uuid4 do controller (correlation chat -> ERP)
+  - correlation_id_upstream     # header X-Correlation-Id
+  - refusal_evasion_attempted   # bool (NIVEL-1 §3.2 / ajuste Security #7)
+
+dados_nao_persistidos:
+  # CG-04 absoluta: identificador pessoal nao persistido, nem payload bruto.
+  - pergunta_bruta_question
+  - payload_completo_request
+  - output_bruto_do_llm
+  - rows_individuais_com_pii
+  - tokens_do_principal
+  - api_key_anthropic
+  - user_agent
+  - ip_origem
+  - device_fingerprint
+
+# 5 thresholds canonicos S2-C08 - consumem metadados acima.
+alertas_canonicos_s2c08:
+  - id: cost_per_call_above_budget
+    metrica: cost_usd (p95 rolling 7d)
+    threshold_amarelo: "> $0.005"
+    threshold_vermelho: "> $0.008"
+    acao: emitir handoff monitorar-custo-llm-alerta para PM/Direcao
+
+  - id: cache_hit_rate_below_threshold
+    metrica: cache_hit (taxa rolling 7d)
+    threshold_amarelo: "< 60%"
+    threshold_vermelho: "< 40%"
+    target: ">= 70%"
+    acao: investigar prompt instabilidade OR distribuicao queries esparsa
+
+  - id: cost_spike_2sigma
+    metrica: cost_usd (volume mensal vs media + 2sigma)
+    threshold_vermelho: "> media + 2sigma"
+    acao: alerta vermelho a Direcao via monitorar-custo-llm-alerta
+
+  - id: content_policy_blocked_rate
+    metrica: content_policy_blocked (taxa rolling 24h)
+    threshold_amarelo: "> 1% das calls"
+    acao: investigar operador comprometido OR insider abuse
+
+  - id: pii_redacted_pos_egress_count
+    metrica: pii_redacted_pos_egress (count em janela 24h)
+    threshold_amarelo: "> 0 em 24h"
+    acao: investigar alucinacao OR vazamento de prompt OR contaminacao rows
+
+# Alerta especifico AP-2 LLM CRITICAL anti-fallback-silencioso.
+alertas_anti_fallback_silencioso:
+  - id: fallback_rate_above_5pct
+    metrica: fallback_active (taxa rolling 24h)
+    threshold_amarelo: "> 5%"
+    threshold_vermelho: "> 20% em 1h"
+    acao: investigar provider Anthropic degradado OR budget proximo do cap
+
+cadencia_revisao:
+  continuous: cron-alerts cada 15min
+  weekly: trend-report (S2-C08 + tech-writer-senior)
+  monthly: deep-dive (Direcao via monitorar-custo-llm-deep-dive)
+
+# Provider remoto candidato para S2-C08+:
+provider_remoto_roadmap:
+  candidato_principal: langfuse
+  alternativa: langsmith
+  criterio_decisao: S2-C08 emite parecer tecnico

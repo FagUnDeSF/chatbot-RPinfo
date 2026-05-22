@@ -1,0 +1,168 @@
+# Thresholds canonicos S2-C08 - observabilidade LLM aplicada
+#
+# Cand origem: S2-C08 (Sprint 002). Arquivo versionado que materializa a
+# tabela `alertas_canonicos_s2c08` previamente declarada em
+# `observability/llm/qa_orchestrator_trace.yaml` (S2-C07). Consumido por
+# `chatbot_rpinfo.application.services.cost_monitor.CostMonitor`.
+#
+# Cross-link:
+#   - ADR-0005 LLM provider (Haiku 4.5 + Sonnet 4.5 opt-in + USD 30/mes + cache >= 70%).
+#   - Metodo `ai-engineer-senior > monitorar-custo-llm` (escritorio V3) - cadencia tripla.
+#   - V5 guarda-em-camadas definitiva (NIVEL-4 anti-fallback-silencioso AP-2 LLM CRITICAL).
+#   - Variant handoff: `tools/contracts/handoff/monitorar-custo-llm-alerta.yaml` (escritorio).
+#   - Template handoff: `tools/templates/handoff-monitorar-custo-llm-alerta.tpl` (escritorio).
+#
+# CG-08 ativa: este arquivo configura comportamento de alerta MAS S2-C08 NAO
+# liga alertas em producao real (sem cron + sem invocacao em runtime). Esta
+# cand entrega configuracao + testes unitarios. Operacao real fica para
+# Sprint 003+ apos Direcao autorizar promocao com ADR especifico.
+
+versao: "0.1.0"
+prompt_ref: prompts/qa_orchestrator_v0.2.0.md
+cand_origem: S2-C08
+sprint_origem: "002"
+data_emissao: 2026-05-22
+adr_referencia: ADR-0005
+
+# 5 tipos de anomalia canonicos (vocab fechado conforme variant
+# `monitorar-custo-llm-alerta.yaml` campo `tipo-anomalia`).
+anomalia_tipos_vocab_fechado:
+  - cost-spike
+  - cost-absoluto-budget-violado
+  - latency-p95-degradacao
+  - cache-hit-rate-baixo
+  - fallback-rate-alto
+
+# 4 recomendacoes canonicas (vocab fechado conforme variant campo
+# `recomendacao`). `manter-config` NAO emite handoff por design.
+recomendacao_vocab_fechado:
+  - manter-config            # NAO emite handoff (apenas registro)
+  - acionar-degraded-mode    # spike critico; ativa rate limit + cache aggressive + fallback explicito
+  - investigar-anomalia      # desvio relevante mas nao critico; investigar root cause
+  - escalar-direcao-budget   # anomalia persistente OR budget violado; Direcao decide acao
+
+# 5 thresholds canonicos. Cada threshold tem (a) valor numerico declarativo;
+# (b) recomendacao mapeada quando violado; (c) severidade (WARNING|CRITICAL);
+# (d) cadencia que monitora (continuous|weekly|monthly). Dial RIGOR_BUDGET
+# adotado: 2sigma para spike (default conservador do metodo §4).
+
+thresholds:
+  cost-spike:
+    descricao: "cost per call (USD) supera baseline diario em >=20% por janela continuous."
+    metric: cost_per_call_usd_p50_window_15min
+    operador: ">="
+    valor_pct_above_baseline: 20.0
+    z_score_minimo: 2.0
+    severity_quando_violado: WARNING
+    recomendacao_default: investigar-anomalia
+    cadencia: continuous
+    janela_avaliacao_min: 15
+    cross_link_audit_field: cost_usd
+    cross_link_ap: AP-3 universal HIGH (evidence-anchored)
+
+  cost-absoluto-budget-violado:
+    descricao: "soma do cost_usd em janela mensal supera USD 30 (orcamento ADR-0005 D3)."
+    metric: cost_usd_sum_window_30d
+    operador: ">"
+    valor_usd: 30.00
+    severity_quando_violado: CRITICAL
+    recomendacao_default: escalar-direcao-budget
+    cadencia: continuous
+    janela_avaliacao_min: 15
+    cross_link_audit_field: cost_usd
+    cross_link_adr: "ADR-0005 D3 - spending limit USD 30/mes configurado no Console Anthropic + bloqueio automatico se ultrapassar"
+
+  latency-p95-degradacao:
+    descricao: "latency_ms_total p95 supera 2x baseline (ADR-0005 alvo p95 < 1500ms; baseline efetivo medido em S2-C07 = 1922ms)."
+    metric: latency_ms_total_p95_window_15min
+    operador: ">"
+    valor_multiplo_baseline: 2.0
+    baseline_ms_referencia: 1922
+    severity_quando_violado: WARNING
+    recomendacao_default: investigar-anomalia
+    cadencia: continuous
+    janela_avaliacao_min: 15
+    cross_link_audit_field: latency_ms_total
+
+  cache-hit-rate-baixo:
+    descricao: "cache hit rate rolling 7d < 50%. Target ADR-0005 D4 >= 70%; alerta amarelo <60%; alerta vermelho deste threshold <50%."
+    metric: cache_hit_rate_pct_window_7d
+    operador: "<"
+    valor_pct: 50.0
+    severity_quando_violado: CRITICAL
+    recomendacao_default: investigar-anomalia
+    cadencia: weekly
+    janela_avaliacao_dias: 7
+    cross_link_audit_field: cache_hit
+    cross_link_adr: "ADR-0005 D4 - cache target >= 70%, alerta amarelo < 60%, alerta vermelho < 40%"
+
+  fallback-rate-alto:
+    descricao: "taxa de fallback para stub-deterministico > 5% das chamadas em janela 24h. AP-2 LLM CRITICAL especifico - excesso de fallback indica provider primario degradado OR budget proximo do cap."
+    metric: fallback_rate_pct_window_24h
+    operador: ">"
+    valor_pct: 5.0
+    severity_quando_violado: CRITICAL
+    recomendacao_default: acionar-degraded-mode
+    cadencia: continuous
+    janela_avaliacao_horas: 24
+    cross_link_audit_field: fallback_active
+    cross_link_ap: "AP-2 LLM CRITICAL especifico (V5 NIVEL-4 anti-fallback-silencioso) - alerta sobre alta taxa NAO dispara fallback adicional; apenas notifica operador."
+
+# Urgencia derivada (vocab fechado 3 valores conforme variant campo `urgencia`).
+# Mapeamento severity + criticality_app -> urgencia.
+urgencia_mapping:
+  alta:
+    descricao: "app critico + anomalia CRITICAL em cost-absoluto OR fallback-rate. Risco financeiro imediato OR degradacao silenciosa de qualidade."
+    prazo_sugerido: imediato
+    aplicavel_em:
+      - {tipo: cost-absoluto-budget-violado, severity: CRITICAL}
+      - {tipo: fallback-rate-alto, severity: CRITICAL}
+  media:
+    descricao: "anomalia CRITICAL em cost-spike OR latency p95 OR cache hit rate."
+    prazo_sugerido: 24h
+    aplicavel_em:
+      - {tipo: cost-spike, severity: CRITICAL}
+      - {tipo: latency-p95-degradacao, severity: CRITICAL}
+      - {tipo: cache-hit-rate-baixo, severity: CRITICAL}
+  baixa:
+    descricao: "anomalia WARNING em qualquer tipo."
+    prazo_sugerido: 1-semana
+    aplicavel_em:
+      - {tipo: cost-spike, severity: WARNING}
+      - {tipo: latency-p95-degradacao, severity: WARNING}
+
+# Prazo sugerido derivado (vocab fechado 3 valores conforme variant campo
+# `prazo-sugerido`).
+prazo_vocab_fechado:
+  - imediato      # urgencia alta -> degraded mode AGORA OR Direcao decide nas proximas horas
+  - 24h           # urgencia media -> investigar/ajustar dentro de 1 dia util
+  - 1-semana      # urgencia baixa -> investigar em ciclo normal
+
+# Configuracao operacional do alerta (sem ligar em producao real - CG-08).
+alerta_config:
+  manter_config_emite_handoff: false   # `manter-config` NAO emite handoff por design (linha 1 do variant)
+  destino_handoff_pm: pm-senior
+  destino_handoff_direcao: 00-direcao
+  unidirecional: true                  # sem -resposta formal (decisao Direcao 2026-05-21)
+  padrao_alerta_v3: monitorar-custo-llm-alerta
+  cron_continuous_minutos: 15
+  cron_weekly_dia_semana: monday
+  cron_monthly_dia_mes: 1
+  baseline_diario_calculado_de: ultimas_7_dias
+  bloqueio_producao_cg08: true         # alerta NAO dispara em runtime ate ADR especifico autorizar
+
+# Campos audit consumidos (cross-link com NIVEL-3 V5 §5.1 - 19 campos).
+campos_audit_consumidos:
+  - cost_usd
+  - latency_ms_total
+  - latency_ms_provider_call
+  - cache_hit
+  - cache_read_tokens
+  - cache_write_tokens
+  - input_tokens_total
+  - output_tokens_total
+  - fallback_active
+  - fallback_reason
+  - provider_used
+  - model_used
+  - prompt_version
