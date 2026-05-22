@@ -1,5 +1,10 @@
 from chatbot_rpinfo.domain.entities.access import AuthenticatedPrincipal, InternalRole, InternalUser
-from chatbot_rpinfo.domain.entities.audit_event import AuditEvent, AuditResponseType, AuditSource
+from chatbot_rpinfo.domain.entities.audit_event import (
+    AuditEvent,
+    AuditResponseType,
+    AuditSource,
+    FallbackReason,
+)
 from chatbot_rpinfo.domain.entities.erp_readonly import (
     ErpParameterValue,
     ErpReadonlyQuery,
@@ -7,6 +12,13 @@ from chatbot_rpinfo.domain.entities.erp_readonly import (
     ErpRow,
 )
 from chatbot_rpinfo.domain.entities.health_status import HealthStatus
+from chatbot_rpinfo.domain.entities.qa import (
+    QaAnswer,
+    QaAnswerType,
+    QaInsufficientReason,
+    QaIntent,
+    QaIntentKind,
+)
 
 __all__ = [
     "AuditEvent",
@@ -17,7 +29,13 @@ __all__ = [
     "ErpReadonlyQuery",
     "ErpReadonlyResult",
     "ErpRow",
+    "FallbackReason",
     "HealthStatus",
     "InternalRole",
     "InternalUser",
+    "QaAnswer",
+    "QaAnswerType",
+    "QaInsufficientReason",
+    "QaIntent",
+    "QaIntentKind",
 ]
