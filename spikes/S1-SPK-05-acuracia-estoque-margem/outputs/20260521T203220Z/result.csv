@@ -1,0 +1,3 @@
+metric_name,veredicto,query_name,source,motivo
+estoque_fantasma,inconclusiva,inventory_risk_spike_S1_C05,erp_readonly.fixture.spike_S1_C05.inventory,harness calcula candidatos sob hipotese tecnica; veredicto final (validado/divergente) depende de comparacao com relatorio oficial
+margem,inconclusiva,sales_summary_spike_S1_C05,erp_readonly.fixture.spike_S1_C05.sales,CMV ausente nas colunas da query allowlisted (somente gross_sales por loja/periodo); calculo de margem requer cmv ou net_sales; relatorio oficial RP Info indisponivel para conferencia; criterio literal admite entrega apenas-harness com margem inconclusiva

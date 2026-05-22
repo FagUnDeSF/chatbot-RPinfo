@@ -1,0 +1,86 @@
+{
+  "amostras": {
+    "inventory": {
+      "n_rows": 10,
+      "query_name": "inventory_risk_spike_S1_C05",
+      "read_only": true,
+      "sha256": "a6f22aadaae86184314c79d874d4d866bbaf73f0df9e49f6b112dc2d6b86c395",
+      "source": "erp_readonly.fixture.spike_S1_C05.inventory"
+    },
+    "sales": {
+      "n_rows": 3,
+      "query_name": "sales_summary_spike_S1_C05",
+      "read_only": true,
+      "sha256": "74e180890330390954090405bebef588ddabb29ddf40ed4a6cb396f423eaf4b4",
+      "source": "erp_readonly.fixture.spike_S1_C05.sales"
+    }
+  },
+  "cand": "S1-C05",
+  "metricas": [
+    {
+      "fonte": {
+        "colunas_consumidas": "sku, store_id, stock, days_without_sale",
+        "query_name": "inventory_risk_spike_S1_C05",
+        "source": "erp_readonly.fixture.spike_S1_C05.inventory"
+      },
+      "metric_name": "estoque_fantasma",
+      "motivo": "harness calcula candidatos sob hipotese tecnica; veredicto final (validado/divergente) depende de comparacao com relatorio oficial",
+      "premissas": {
+        "as_of_date": "2026-05-21",
+        "filtros": [
+          "nenhum filtro aplicado a montante; regra opera sobre a amostra inteira"
+        ],
+        "janela_temporal": "snapshot unico em 2026-05-21",
+        "nota_acuracia": "threshold de 90 dias e hipotese tecnica do spike, nao regra oficial; veredicto final de acuracia depende de comparacao com relatorio oficial",
+        "regra": "SKU classificado como fantasma se stock > 0 AND days_without_sale >= threshold",
+        "threshold_dias_sem_venda": 90
+      },
+      "valor": {
+        "n_skus_amostrados": 10,
+        "n_skus_fantasma_candidatos": 5,
+        "skus_fantasma_candidatos": [
+          "SKU-S1SPK05-002",
+          "SKU-S1SPK05-004",
+          "SKU-S1SPK05-006",
+          "SKU-S1SPK05-008",
+          "SKU-S1SPK05-010"
+        ]
+      },
+      "veredicto": "inconclusiva"
+    },
+    {
+      "fonte": {
+        "colunas_ausentes_para_calculo": "cmv, net_sales",
+        "colunas_consumidas": "store_id, period, gross_sales",
+        "query_name": "sales_summary_spike_S1_C05",
+        "source": "erp_readonly.fixture.spike_S1_C05.sales"
+      },
+      "metric_name": "margem",
+      "motivo": "CMV ausente nas colunas da query allowlisted (somente gross_sales por loja/periodo); calculo de margem requer cmv ou net_sales; relatorio oficial RP Info indisponivel para conferencia; criterio literal admite entrega apenas-harness com margem inconclusiva",
+      "premissas": {
+        "as_of_date": "2026-05-21",
+        "filtros": [
+          "nenhum filtro aplicado a montante; regra opera sobre a amostra inteira"
+        ],
+        "janela_temporal": "snapshot unico em 2026-05-21",
+        "motivo_inconclusiva": [
+          "CMV ausente nas colunas da query allowlisted (somente gross_sales por loja/periodo); calculo de margem requer cmv ou net_sales",
+          "relatorio oficial RP Info indisponivel para conferencia; criterio literal admite entrega apenas-harness com margem inconclusiva"
+        ],
+        "regra": "margem = (gross_sales - cmv) / gross_sales; requer cmv por loja/periodo"
+      },
+      "valor": {
+        "gross_sales_total": 3660.5,
+        "n_lojas_amostradas": 3
+      },
+      "veredicto": "inconclusiva"
+    }
+  ],
+  "relatorio_oficial": {
+    "motivo": "path nao fornecido (parametro --relatorio-oficial-path ausente)",
+    "status": "indisponivel"
+  },
+  "spike_id": "S1-SPK-05-acuracia-estoque-margem",
+  "threshold_dias_sem_venda": 90,
+  "timestamp_utc": "2026-05-22T09:39:07.911736+00:00"
+}
