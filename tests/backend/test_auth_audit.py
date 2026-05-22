@@ -129,6 +129,10 @@ def test_query_audit_rejects_raw_payload_field(client: TestClient) -> None:
         ("audit-sensitive-cnpj-fmt", "consulta CNPJ 00.000.000/0000-00"),
         ("audit-sensitive-phone", "contato WhatsApp (11) 99999-9999"),
         ("audit-sensitive-phone-e164", "contato 5511999999999"),
+        ("audit-sensitive-rg-sp-fmt-x-upper", "consulta RG 12.345.678-X"),
+        ("audit-sensitive-rg-sp-fmt-x-lower", "consulta RG 12.345.678-x"),
+        ("audit-sensitive-rg-sp-fmt-digit", "consulta RG 12.345.678-9"),
+        ("audit-sensitive-rg-sp-fmt-zero", "cliente 00.000.000-0 nao localizado"),
     ],
 )
 def test_query_audit_rejects_sensitive_identifiers_in_intent(
