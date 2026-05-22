@@ -8,6 +8,16 @@ _PHONE_FORMATTED_RE = re.compile(
     r"(?<!\d)(?:\+?55[\s-]?)?\(?\d{2}\)?[\s-]?9?\d{4}[\s-]\d{4}(?!\d)"
 )
 _RG_FORMATTED_RE = re.compile(r"(?<!\d)\d{1,2}\.\d{3}\.\d{3}-[\dXx](?![\dXx])")
+
+# Regra defensiva: runs >=7 digitos consecutivos sao rejeitados como possivel
+# PII (CPF/CNPJ/RG/telefone). Decisao PM TD-003 caminho `manter+documentar`
+# (formalizada em
+# equipe/pm-senior/decisoes/2026-05-22_TD-003-trade-off-cobertura-vs-precisao.md).
+# Trade-off aceito: false-positive teorico em SKU/NF/codigo-pedido legitimo
+# favorecendo seguranca PII durante prova controlada interna. Plano de revisao:
+# reavaliar quando (a) >=3 false-positive observados em uso real em 30 dias OR
+# (b) primeira sprint pos-go-live amplo. Detalhes adicionais e justificativa
+# completa em SENSITIVE_DATA_POLICY.md co-localizado neste pacote.
 _DIGIT_RUN_RE = re.compile(r"\d{7,}")
 
 _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
