@@ -133,6 +133,11 @@ def test_query_audit_rejects_raw_payload_field(client: TestClient) -> None:
         ("audit-sensitive-rg-sp-fmt-x-lower", "consulta RG 12.345.678-x"),
         ("audit-sensitive-rg-sp-fmt-digit", "consulta RG 12.345.678-9"),
         ("audit-sensitive-rg-sp-fmt-zero", "cliente 00.000.000-0 nao localizado"),
+        ("audit-sensitive-email-canonical", "contato joao@empresa.com.br"),
+        ("audit-sensitive-email-plus", "contato joao.silva+marketing@empresa.com.br"),
+        ("audit-sensitive-email-subdomain", "contato joao@suporte.empresa.com.br"),
+        ("audit-sensitive-email-tld-uncommon", "contato joao@empresa.io"),
+        ("audit-sensitive-email-uppercase", "Contato JOAO@EMPRESA.COM.BR"),
     ],
 )
 def test_query_audit_rejects_sensitive_identifiers_in_intent(

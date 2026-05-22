@@ -8,6 +8,7 @@ _PHONE_FORMATTED_RE = re.compile(
     r"(?<!\d)(?:\+?55[\s-]?)?\(?\d{2}\)?[\s-]?9?\d{4}[\s-]\d{4}(?!\d)"
 )
 _RG_FORMATTED_RE = re.compile(r"(?<!\d)\d{1,2}\.\d{3}\.\d{3}-[\dXx](?![\dXx])")
+_EMAIL_RE = re.compile(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}")
 
 # Regra defensiva: runs >=7 digitos consecutivos sao rejeitados como possivel
 # PII (CPF/CNPJ/RG/telefone). Decisao PM TD-003 caminho `manter+documentar`
@@ -25,6 +26,7 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("cnpj_formatted", _CNPJ_FORMATTED_RE),
     ("phone_or_whatsapp_formatted", _PHONE_FORMATTED_RE),
     ("rg_formatted", _RG_FORMATTED_RE),
+    ("email", _EMAIL_RE),
     ("numeric_identifier_run", _DIGIT_RUN_RE),
 )
 
