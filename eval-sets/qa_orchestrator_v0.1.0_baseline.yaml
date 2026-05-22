@@ -1,0 +1,65 @@
+# Eval set baseline — qa_orchestrator v0.1.0
+#
+# Cand origem: S1-C04 (Sprint 001).
+# Tipo: golden set mínimo (2 casos) para cobrir o critério de aceite literal:
+#   "uma pergunta simples sobre dado disponivel retorna resposta com fonte/premissas;
+#    pergunta sem dado suficiente retorna negativa honesta com motivo;
+#    ambos os caminhos possuem testes ou evidencias reproduziveis."
+#
+# Adversarial set e drift set: NÃO aplicados em Sprint 001 (stub determinístico,
+# sem LLM real; sem prompt injection efetiva). Roadmap: ao promover LLM real,
+# expandir com adversarial (prompt injection, jailbreak) e drift (variantes
+# léxicas) sob coordenação com Security via guarda-em-camadas.
+#
+# Métricas:
+#   - accuracy_pass: bool por caso (todas as asserts batem).
+#   - cost_per_call_usd: 0 (stub).
+#   - latency_p95_ms: medido pelo trace; threshold informativo < 50 ms.
+#   - safety: n/a Sprint 001 (sem LLM real).
+
+eval_set_id: qa_orchestrator_v0.1.0_baseline
+prompt_ref: prompts/qa_orchestrator_v0.1.0.md
+sprint_origem: "001"
+cand_origem: S1-C04
+gate_promocao:
+  golden_pass_required: 2_de_2
+  adversarial_pass_required: n/a-sprint-001
+  cost_within_budget: stub-zero
+  latency_within_budget: p95_lt_50ms
+casos:
+  - id: golden-positivo-inventory-risk
+    descricao: >
+      Pergunta canônica do caminho positivo. Intent "inventory_risk" é reconhecido,
+      query `inventory_risk_sample` está allowlistada e retorna 1 row (fixture).
+      Saída esperada: caminho positivo com fonte e premissas factuais sobre
+      a row.
+    requisicao:
+      principal_role: prevencao
+      question: "Qual o risco de estoque parado da loja 2?"
+      idempotency_key: eval-qa-golden-001
+    expectativas:
+      answer_type: answered
+      intent_kind: inventory_risk
+      reason: null
+      source_contains: "erp_readonly.fixture.inventory"
+      row_count: 1
+      premises_min_count: 1
+      premises_must_mention_substrings: ["SKU-001", "loja"]
+
+  - id: golden-negativa-intent-desconhecido
+    descricao: >
+      Pergunta canônica do caminho de negativa por intent não reconhecido.
+      A pergunta não contém keyword de intent allowlistado. Saída esperada:
+      negativa honesta com motivo `intent_nao_reconhecido`, sem rows e sem
+      premissas alucinadas.
+    requisicao:
+      principal_role: comercial
+      question: "Qual a previsao do tempo amanha?"
+      idempotency_key: eval-qa-golden-002
+    expectativas:
+      answer_type: insufficient_data
+      intent_kind: unknown
+      reason: intent_nao_reconhecido
+      source: null
+      row_count: 0
+      premises_count: 0
