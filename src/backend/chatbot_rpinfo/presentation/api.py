@@ -20,6 +20,7 @@ from chatbot_rpinfo.presentation.controllers.erp_readonly_controller import (
     router as erp_readonly_router,
 )
 from chatbot_rpinfo.presentation.controllers.health_controller import router as health_router
+from chatbot_rpinfo.presentation.controllers.qa_controller import router as qa_router
 from chatbot_rpinfo.presentation.dependencies import get_settings
 
 _SENSITIVE_ERROR_TAG = "sensitive_identifier_detected"
@@ -85,4 +86,5 @@ def create_app(
     app.include_router(audit_router, prefix=resolved_settings.api_prefix)
     app.include_router(erp_readonly_router, prefix=resolved_settings.api_prefix)
     app.include_router(health_router, prefix=resolved_settings.api_prefix)
+    app.include_router(qa_router, prefix=resolved_settings.api_prefix)
     return app

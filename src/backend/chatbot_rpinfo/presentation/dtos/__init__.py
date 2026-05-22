@@ -5,6 +5,7 @@ from chatbot_rpinfo.presentation.dtos.erp_readonly import (
     ErpReadonlyQueryResponse,
 )
 from chatbot_rpinfo.presentation.dtos.health import HealthResponse
+from chatbot_rpinfo.presentation.dtos.qa import QaAskRequest, QaAskResponse, QaIntentResponse
 
 __all__ = [
     "AuditEventResponse",
@@ -14,4 +15,7 @@ __all__ = [
     "HealthResponse",
     "InternalLoginRequest",
     "InternalUserResponse",
+    "QaAskRequest",
+    "QaAskResponse",
+    "QaIntentResponse",
 ]

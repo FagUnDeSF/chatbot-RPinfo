@@ -26,10 +26,38 @@ class AppSettings(BaseModel):
     api_prefix: str = Field(default="/api/v1", pattern=r"^/[a-z0-9/_-]+$")
     erp_readonly_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
     erp_readonly_max_rows: int = Field(default=100, ge=1, le=1000)
+
+    # --- ADR-0005 LLM provider settings (Sprint 002 S2-C07) ----------------
+    # AP-12 universal: NEVER persist secret value in repo. These fields hold
+    # LOCATION (env var name) only. The actual key is read from environment
+    # at DI bootstrap and forwarded to the Anthropic SDK client.
+    llm_provider: str = Field(default="anthropic", min_length=1)
+    llm_default_model: str = Field(
+        default="claude-haiku-4-5-20251001", min_length=1
+    )
+    llm_escalation_model: str = Field(
+        default="claude-sonnet-4-5-20250929", min_length=1
+    )
+    llm_max_tokens: int = Field(default=600, ge=1, le=4000)
+    llm_temperature: float = Field(default=0.2, ge=0.0, le=1.0)
+    llm_monthly_budget_usd: float = Field(default=30.0, gt=0, le=10000)
+    llm_cache_target_pct: float = Field(default=70.0, ge=0, le=100)
+    llm_phase: int = Field(default=1, ge=1, le=2)
+    # `anthropic_api_key_env_var` is the NAME of the env var to read. Default
+    # `ANTHROPIC_API_KEY` aligns with Anthropic SDK convention.
+    anthropic_api_key_env_var: str = Field(
+        default="ANTHROPIC_API_KEY", min_length=1, pattern=r"^[A-Z][A-Z0-9_]*$"
+    )
+    # `use_stub_deterministico` forces the stub provider regardless of
+    # ANTHROPIC_API_KEY presence. Used by local dev + pytest suites that do
+    # not exercise the real provider. Off by default in production runtime.
+    use_stub_deterministico: bool = Field(default=False)
+
     secret_locations: tuple[str, ...] = Field(
         default=(
             "ERP_TESTE_DATABASE_URL",
             "AI_PROVIDER_API_KEY",
+            "ANTHROPIC_API_KEY",
             "INTERNAL_AUTH_DIRECAO_TOKEN",
             "INTERNAL_AUTH_COMERCIAL_TOKEN",
             "INTERNAL_AUTH_PREVENCAO_TOKEN",
@@ -74,4 +102,7 @@ def load_settings(environ: Mapping[str, str] | None = None) -> AppSettings:
         version=source.get("APP_VERSION", "0.1.0"),
         erp_readonly_timeout_seconds=float(source.get("ERP_READONLY_TIMEOUT_SECONDS", "5.0")),
         erp_readonly_max_rows=int(source.get("ERP_READONLY_MAX_ROWS", "100")),
+        use_stub_deterministico=source.get("USE_STUB_DETERMINISTICO", "false").lower()
+        in {"1", "true", "yes"},
+        llm_monthly_budget_usd=float(source.get("LLM_MONTHLY_BUDGET_USD", "30.0")),
     )
