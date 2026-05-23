@@ -76,3 +76,6 @@ class AuditEvent:
     fallback_reason: FallbackReason | None = None
     request_id: str | None = None
     correlation_id_upstream: str | None = None
+    rate_limit_hit: bool = False
+    rate_limit_window_seconds: int = 0
+    role_used: str | None = None

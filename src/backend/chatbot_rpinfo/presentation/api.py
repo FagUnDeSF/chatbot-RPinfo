@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from chatbot_rpinfo.application.services import SlidingWindowRateLimiter
 from chatbot_rpinfo.config import AppSettings, load_settings
 from chatbot_rpinfo.domain.entities import InternalUser
 from chatbot_rpinfo.infrastructure.repositories import (
@@ -22,6 +23,7 @@ from chatbot_rpinfo.presentation.controllers.erp_readonly_controller import (
 from chatbot_rpinfo.presentation.controllers.health_controller import router as health_router
 from chatbot_rpinfo.presentation.controllers.qa_controller import router as qa_router
 from chatbot_rpinfo.presentation.dependencies import get_settings
+from chatbot_rpinfo.presentation.middleware import RateLimitMiddleware
 
 _SENSITIVE_ERROR_TAG = "sensitive_identifier_detected"
 
@@ -68,8 +70,10 @@ def create_app(
         timeout_seconds=resolved_settings.erp_readonly_timeout_seconds,
         max_rows=resolved_settings.erp_readonly_max_rows,
     )
+    app.state.rate_limiter = SlidingWindowRateLimiter()
     app.state.token_source = os.environ if token_source is None else token_source
     app.dependency_overrides[get_settings] = lambda: resolved_settings
+    app.add_middleware(RateLimitMiddleware, api_prefix=resolved_settings.api_prefix)
 
     @app.exception_handler(RequestValidationError)
     async def _redact_sensitive_validation_errors(

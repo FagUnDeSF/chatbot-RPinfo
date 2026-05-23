@@ -53,6 +53,7 @@ from chatbot_rpinfo.application.services.qa_orchestrator_service import (
     PiiBoundaryError,
     QaOrchestratorService,
 )
+from chatbot_rpinfo.application.services.rate_limit_service import SlidingWindowRateLimiter
 
 __all__ = [
     "AlertDecision",
@@ -95,6 +96,7 @@ __all__ = [
     "QaOrchestratorService",
     "RouterDecision",
     "SonnetProviderFactory",
+    "SlidingWindowRateLimiter",
     "StubDeterministicLlmProvider",
     "empty_metadata_for",
 ]

@@ -19,6 +19,7 @@ from chatbot_rpinfo.domain.entities.qa import (
     QaIntent,
     QaIntentKind,
 )
+from chatbot_rpinfo.domain.entities.rate_limit import RateLimitDecision
 
 __all__ = [
     "AuditEvent",
@@ -38,4 +39,5 @@ __all__ = [
     "QaInsufficientReason",
     "QaIntent",
     "QaIntentKind",
+    "RateLimitDecision",
 ]

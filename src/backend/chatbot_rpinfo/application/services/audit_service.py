@@ -25,7 +25,7 @@ class AuditService:
     def __init__(self, audit_event_repository: AuditEventRepository) -> None:
         self._audit_event_repository = audit_event_repository
 
-    def record_query_event(  # noqa: PLR0913 - canonical signature mirrors NIVEL-3 V5 §5.1
+    def record_query_event(
         self,
         principal: AuthenticatedPrincipal,
         intent: str,
@@ -48,23 +48,92 @@ class AuditService:
         fallback_reason: FallbackReason | None = None,
         request_id: str | None = None,
         correlation_id_upstream: str | None = None,
+        rate_limit_hit: bool = False,
+        rate_limit_window_seconds: int = 0,
+        role_used: str | None = None,
     ) -> AuditEvent:
-        if not self._can_record_source(principal.user.role, source):
+        return self._record_event(
+            principal=principal,
+            intent=intent,
+            source=source,
+            response_type=response_type,
+            insufficient_data=insufficient_data,
+            idempotency_key=idempotency_key,
+            authorize_source=True,
+            llm_metadata=llm_metadata,
+            escalation_requested=escalation_requested,
+            escalation_granted=escalation_granted,
+            pii_detectado_pre_egress=pii_detectado_pre_egress,
+            pii_redacted_pos_egress=pii_redacted_pos_egress,
+            pii_redacted_count=pii_redacted_count,
+            pii_redacted_categories=pii_redacted_categories,
+            content_policy_blocked=content_policy_blocked,
+            content_policy_pattern_id=content_policy_pattern_id,
+            refusal_evasion_attempted=refusal_evasion_attempted,
+            fallback_active=fallback_active,
+            fallback_reason=fallback_reason,
+            request_id=request_id,
+            correlation_id_upstream=correlation_id_upstream,
+            rate_limit_hit=rate_limit_hit,
+            rate_limit_window_seconds=rate_limit_window_seconds,
+            role_used=role_used,
+        )
+
+    def record_rate_limit_hit(
+        self,
+        *,
+        principal: AuthenticatedPrincipal,
+        idempotency_key: str,
+        window_seconds: int,
+    ) -> AuditEvent:
+        return self._record_event(
+            principal=principal,
+            intent="rate limit exceeded",
+            source=AuditSource.SISTEMA,
+            response_type=AuditResponseType.ERROR,
+            insufficient_data=False,
+            idempotency_key=idempotency_key,
+            authorize_source=False,
+            rate_limit_hit=True,
+            rate_limit_window_seconds=window_seconds,
+            role_used=principal.user.role.value,
+        )
+
+    def _record_event(
+        self,
+        principal: AuthenticatedPrincipal,
+        intent: str,
+        source: AuditSource,
+        response_type: AuditResponseType,
+        insufficient_data: bool,
+        idempotency_key: str,
+        *,
+        authorize_source: bool,
+        llm_metadata: LlmCallMetadata | None = None,
+        escalation_requested: bool = False,
+        escalation_granted: bool = False,
+        pii_detectado_pre_egress: bool = False,
+        pii_redacted_pos_egress: bool = False,
+        pii_redacted_count: int = 0,
+        pii_redacted_categories: tuple[str, ...] = (),
+        content_policy_blocked: bool = False,
+        content_policy_pattern_id: str | None = None,
+        refusal_evasion_attempted: bool = False,
+        fallback_active: bool = False,
+        fallback_reason: FallbackReason | None = None,
+        request_id: str | None = None,
+        correlation_id_upstream: str | None = None,
+        rate_limit_hit: bool = False,
+        rate_limit_window_seconds: int = 0,
+        role_used: str | None = None,
+    ) -> AuditEvent:
+        if authorize_source and not self._can_record_source(principal.user.role, source):
             raise AuditAuthorizationError("role_cannot_record_source")
 
         assert_no_sensitive_identifiers(intent)
-        # CG-04-OBS-2 (TL §2 parecer S2-C07) - defense-in-depth: o header
-        # `X-Correlation-Id` chega do upstream sem validacao previa, entao
-        # validar antes de persistir no audit evita que CPF/CNPJ/etc vazem
-        # via correlation_id se cliente malicioso injetar PII no header.
-        # `request_id` e UUID v4 gerado pelo controller (deterministicamente
-        # seguro), portanto NAO precisa validacao.
         if correlation_id_upstream is not None:
             assert_no_sensitive_identifiers(correlation_id_upstream)
 
-        # Default LLM-metadata fields when caller did not pass a metadata
-        # struct (S001 stub-deterministico path or NIVEL-2 content-policy
-        # bloqueio pre-LLM that never reached the provider).
         provider_used: str | None = None
         model_used: str | None = None
         prompt_version: str | None = None
@@ -122,6 +191,9 @@ class AuditService:
             fallback_reason=fallback_reason,
             request_id=request_id,
             correlation_id_upstream=correlation_id_upstream,
+            rate_limit_hit=rate_limit_hit,
+            rate_limit_window_seconds=rate_limit_window_seconds,
+            role_used=role_used,
         )
         return self._audit_event_repository.save_once(idempotency_key, event)
 

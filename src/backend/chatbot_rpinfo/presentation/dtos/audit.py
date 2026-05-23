@@ -33,6 +33,9 @@ class AuditEventResponse(BaseModel):
     source: AuditSource
     response_type: AuditResponseType
     insufficient_data: bool
+    rate_limit_hit: bool
+    rate_limit_window_seconds: int
+    role_used: str | None
 
     @classmethod
     def from_domain(cls, event: AuditEvent) -> AuditEventResponse:
@@ -45,4 +48,7 @@ class AuditEventResponse(BaseModel):
             source=event.source,
             response_type=event.response_type,
             insufficient_data=event.insufficient_data,
+            rate_limit_hit=event.rate_limit_hit,
+            rate_limit_window_seconds=event.rate_limit_window_seconds,
+            role_used=event.role_used,
         )
