@@ -52,6 +52,7 @@ function isDemoState(value: string): value is DemoState {
 
 function buildAssistant(state: Exclude<DemoState, "empty" | "loading" | "422" | "403" | "500">): AssistantMessage {
   const insufficient = state === "cg05";
+  const demoDate = new Date("2026-05-23T14:27:00");
   return {
     id: `demo-assistant-${state}`,
     kind: "assistant",
@@ -65,7 +66,9 @@ function buildAssistant(state: Exclude<DemoState, "empty" | "loading" | "422" | 
       ? ["busca por descricao regional X", "nenhuma correspondencia operacional no snapshot atual"]
       : ["loja 03", "snapshot 22/05/2026 23h59", "SKU-001 banana prata"],
     timestamp,
-    protocol: createProtocol(new Date("2026-05-23T14:27:00")),
+    timestampMs: demoDate.getTime(),
+    sequenceNumber: 42,
+    protocol: createProtocol(demoDate),
     headers: {
       fallback: state === "fallback" ? "stub-deterministico" : null,
       escalationDenied: null,

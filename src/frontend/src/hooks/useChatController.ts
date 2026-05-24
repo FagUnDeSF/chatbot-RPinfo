@@ -16,6 +16,7 @@ interface State {
   draft: string;
   isSubmitting: boolean;
   statusLabel: string;
+  assistantSequence: number;
 }
 
 type Action =
@@ -29,13 +30,22 @@ const initialState: State = {
   messages: [],
   draft: "",
   isSubmitting: false,
-  statusLabel: "ERP CONECTADO"
+  statusLabel: "ERP CONECTADO",
+  assistantSequence: 0
 };
 
 export function useChatController(seedMessages?: readonly ChatMessage[]): ChatController {
+  const seedSequence = (seedMessages ?? []).reduce(
+    (max, message) =>
+      message.kind === "assistant" && message.sequenceNumber > max
+        ? message.sequenceNumber
+        : max,
+    0
+  );
   const [state, dispatch] = useReducer(reducer, {
     ...initialState,
-    messages: seedMessages ?? []
+    messages: seedMessages ?? [],
+    assistantSequence: seedSequence
   });
   const abortRef = useRef<AbortController | null>(null);
   const hint = useMemo(() => HINTS[Math.floor(Math.random() * HINTS.length)], []);
@@ -88,7 +98,7 @@ export function useChatController(seedMessages?: readonly ChatMessage[]): ChatCo
         kind: "attention",
         variant: "cancelled",
         question: loading.question,
-        message: "Consulta cancelada.",
+        message: "Consulta cancelada. Pergunte de novo quando quiser.",
         actionLabel: null,
         retryAt: null,
         timestamp: formatTime()
@@ -125,14 +135,24 @@ function reducer(state: State, action: Action): State {
         isSubmitting: true,
         messages: [...state.messages, action.user, action.loading]
       };
-    case "finish":
+    case "finish": {
+      const nextSequence =
+        action.message.kind === "assistant"
+          ? state.assistantSequence + 1
+          : state.assistantSequence;
+      const finalMessage: ChatMessage =
+        action.message.kind === "assistant"
+          ? { ...action.message, sequenceNumber: nextSequence }
+          : action.message;
       return {
         ...state,
         isSubmitting: false,
+        assistantSequence: nextSequence,
         messages: state.messages.map((message) =>
-          message.id === action.loadingId ? action.message : message
+          message.id === action.loadingId ? finalMessage : message
         )
       };
+    }
     case "cancel":
       return {
         ...state,
@@ -156,6 +176,7 @@ function buildAssistantMessage(question: string, result: QaClientSuccess): ChatM
         ? "fallback"
         : "success";
 
+  const now = new Date();
   return {
     id: `assistant-${result.body.answer_id}`,
     kind: "assistant",
@@ -166,8 +187,10 @@ function buildAssistantMessage(question: string, result: QaClientSuccess): ChatM
       : rowsToAnswer(result.body.rows),
     source: result.body.source ?? "n/a",
     premises: result.body.premises.length > 0 ? result.body.premises : ["criterios insuficientes para consulta conclusiva"],
-    timestamp: formatTime(),
-    protocol: createProtocol(),
+    timestamp: formatTime(now),
+    timestampMs: now.getTime(),
+    sequenceNumber: 0,
+    protocol: createProtocol(now),
     headers: result.headers,
     elapsedMs: result.elapsedMs,
     raw: result.body
@@ -175,17 +198,22 @@ function buildAssistantMessage(question: string, result: QaClientSuccess): ChatM
 }
 
 function buildAttentionMessage(result: QaClientFailure): ChatMessage {
+  const rateLimitCopy = (retryAt: string | null): string =>
+    retryAt !== null
+      ? `Voce atingiu o limite de perguntas desta hora (200/h perfil DIRECAO). Tente de novo as ${retryAt}.`
+      : "Voce atingiu o limite de perguntas desta hora (200/h perfil DIRECAO). Tente de novo daqui a alguns minutos.";
+
   const messageByKind: Record<QaClientFailure["kind"], { message: string; action: string | null }> = {
     pii: {
       message: "Sua pergunta inclui um CPF, CNPJ ou identificador pessoal. Reformule sem esse dado e tento responder de novo.",
       action: "Reformular"
     },
     "rate-limit": {
-      message: `Voce atingiu o limite de perguntas desta hora (200/h perfil DIRECAO). Tente de novo as ${result.retryAt ?? "proxima janela"}.`,
+      message: rateLimitCopy(result.retryAt),
       action: null
     },
     forbidden: {
-      message: "Voce atingiu o limite de perguntas desta hora (200/h perfil DIRECAO). Tente de novo as proxima janela.",
+      message: rateLimitCopy(result.retryAt),
       action: null
     },
     server: {

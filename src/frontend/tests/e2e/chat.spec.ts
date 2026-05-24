@@ -33,9 +33,9 @@ test("fluxo Q&A feliz renderiza fonte, premissas e impressao operacional", async
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "ChatRP Info" })).toBeVisible();
-  await expect(page.getByLabel("Pergunta para o ERP")).toBeFocused();
+  await expect(page.getByLabel("Pergunta ao ChatRP Info")).toBeFocused();
 
-  await page.getByLabel("Pergunta para o ERP").fill("qual a margem da banana prata neste mes na loja 03?");
+  await page.getByLabel("Pergunta ao ChatRP Info").fill("qual a margem da banana prata neste mes na loja 03?");
   await page.getByRole("button", { name: /Perguntar/ }).click();
 
   await expect(page.getByLabel("Resposta do assistente")).toContainText("FONTE");

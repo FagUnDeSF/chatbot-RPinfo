@@ -26,9 +26,9 @@ export function InputArea({ draft, isSubmitting, onDraftChange, onSubmit }: Inpu
       }}
     >
       <QuestionTextarea
-        label="Pergunta para o ERP"
+        label="Pergunta ao ChatRP Info"
         value={draft}
-        placeholder="Digite sua pergunta"
+        placeholder="Pergunte sobre margem, ruptura, CMV, mix, giro, fornecedor, encarte..."
         disabled={isSubmitting}
         onChange={(event) => onDraftChange(event.target.value)}
         onKeyDown={handleKeyDown}

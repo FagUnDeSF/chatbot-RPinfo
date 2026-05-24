@@ -27,6 +27,8 @@ export interface AssistantMessage {
   source: string;
   premises: readonly string[];
   timestamp: string;
+  timestampMs: number;
+  sequenceNumber: number;
   protocol: string;
   headers: QaClientHeaders;
   elapsedMs: number;
