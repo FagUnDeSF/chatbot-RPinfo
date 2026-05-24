@@ -39,7 +39,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         decision = self._limiter(request).check(
             bucket_key=self._bucket_key(request, principal),
             role=principal.user.role if principal is not None else None,
-            route_key=request.url.path,
         )
         if decision.allowed:
             return await call_next(request)

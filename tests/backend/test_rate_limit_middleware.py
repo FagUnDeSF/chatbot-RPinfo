@@ -27,6 +27,7 @@ def _install_limiter(
     clock: MutableClock,
     *,
     default_limit: int = 1,
+    comercial_limit: int = 2,
 ) -> None:
     app = client.app
     assert isinstance(app, FastAPI)
@@ -35,7 +36,7 @@ def _install_limiter(
         window_seconds=10,
         default_limit=default_limit,
         limits_by_role={
-            InternalRole.COMERCIAL: 2,
+            InternalRole.COMERCIAL: comercial_limit,
             InternalRole.PREVENCAO: 2,
             InternalRole.ADMIN_TECNICO: 3,
             InternalRole.DIRECAO: 3,
@@ -86,6 +87,21 @@ def test_rate_limit_returns_429_with_retry_after_and_audit_metadata(
     assert audit_events[0].rate_limit_hit is True
     assert audit_events[0].rate_limit_window_seconds == 10
     assert audit_events[0].role_used == "comercial"
+
+
+def test_rate_limit_aggregates_authenticated_bucket_across_routes(
+    client: TestClient,
+) -> None:
+    _install_limiter(client, MutableClock(100.0), comercial_limit=1)
+    headers = _headers("rp-comercial", "test-comercial-token")
+
+    first = client.get("/api/v1/auth/internal/me", headers=headers)
+    exceeded = client.get("/api/v1/health", headers=headers)
+
+    assert first.status_code == 200
+    assert exceeded.status_code == 429
+    assert exceeded.headers["Retry-After"] == "10"
+    assert exceeded.json()["role_used"] == "comercial"
 
 
 def test_rate_limit_resets_after_window(client: TestClient) -> None:

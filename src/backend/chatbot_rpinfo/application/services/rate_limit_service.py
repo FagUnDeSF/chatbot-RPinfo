@@ -8,7 +8,7 @@ from time import monotonic
 
 from chatbot_rpinfo.domain.entities import InternalRole, RateLimitDecision
 
-RateLimitBucket = tuple[str, str, str]
+RateLimitBucket = tuple[str, str]
 
 
 class SlidingWindowRateLimiter:
@@ -36,7 +36,6 @@ class SlidingWindowRateLimiter:
         *,
         bucket_key: str,
         role: InternalRole | None,
-        route_key: str,
     ) -> RateLimitDecision:
         now = self._clock()
         role_used = role.value if role is not None else "default"
@@ -45,7 +44,7 @@ class SlidingWindowRateLimiter:
             if role is None
             else self._limits_by_role.get(role, self._default_limit)
         )
-        bucket = (bucket_key, role_used, route_key)
+        bucket = (bucket_key, role_used)
 
         with self._lock:
             hits = self._hits_by_bucket.setdefault(bucket, deque())
