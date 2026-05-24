@@ -1,8 +1,6 @@
 import type { QaAskResponse, QaClientFailure, QaClientResult } from "../types/qa";
 
 const API_BASE_URL = "/api/v1";
-const INTERNAL_USERNAME = "rp-direcao";
-const INTERNAL_TOKEN = "test-direcao-token";
 
 interface AskOptions {
   question: string;
@@ -20,8 +18,6 @@ export async function askQa(options: AskOptions): Promise<QaClientResult> {
       signal: options.signal,
       headers: {
         "Content-Type": "application/json",
-        "X-Internal-Username": INTERNAL_USERNAME,
-        "X-Internal-Token": INTERNAL_TOKEN,
         "Idempotency-Key": idempotencyKey,
         ...(options.escalate ? { "X-LLM-Escalate": "sonnet" } : {})
       },

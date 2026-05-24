@@ -17,6 +17,13 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "tests", "playwright.config.ts", "vite.config.ts", "eslint.config.js"],
+  "include": [
+    "src",
+    "tests",
+    "playwright.config.ts",
+    "playwright.auth-real.config.ts",
+    "vite.config.ts",
+    "eslint.config.js"
+  ],
   "references": []
 }
