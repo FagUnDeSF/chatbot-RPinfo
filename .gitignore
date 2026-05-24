@@ -11,6 +11,11 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+node_modules/
+src/frontend/dist/
+src/frontend/playwright-report/
+src/frontend/test-results/
+src/frontend/.vite/
 *.db
 *.sqlite
 *.sqlite3

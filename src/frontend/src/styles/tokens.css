@@ -1,0 +1,46 @@
+:root {
+  --ink: #1a1f2e;
+  --paper: #faf7f2;
+  --paper-96: #f5f1ea;
+  --paper-warm: #f2ebdd;
+  --shelf-tag-yellow: #e8b53c;
+  --profit-green: #2d5f4a;
+  --tungsten-amber: #c97a3b;
+  --awning-grey: #4a4e55;
+  --butcher-red: #8b2e2e;
+  --aged-paper-grey: #c9c3b7;
+
+  --text-primary: var(--ink);
+  --text-secondary: var(--awning-grey);
+  --surface-base: var(--paper);
+  --surface-elevated: var(--paper-96);
+  --surface-app-bg: var(--paper-warm);
+  --surface-bloco: var(--paper-96);
+  --border-stamp: var(--ink);
+  --border-stamp-attention: var(--tungsten-amber);
+  --border-dashed: var(--aged-paper-grey);
+  --accent-positive: var(--profit-green);
+  --accent-attention: var(--tungsten-amber);
+  --accent-marking: var(--shelf-tag-yellow);
+  --accent-critical: var(--butcher-red);
+
+  --font-mono: "IBM Plex Mono", "Menlo", "Courier New", monospace;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --shadow-bubble: 0 1px 0 rgba(26, 31, 46, 0.04), 0 1px 2px rgba(26, 31, 46, 0.06);
+  --shadow-tooltip: 0 2px 8px rgba(26, 31, 46, 0.12);
+  --shadow-input-focus: 0 0 0 2px #1a1f2e;
+}
