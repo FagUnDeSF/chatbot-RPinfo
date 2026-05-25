@@ -39,13 +39,13 @@ de escrita automatizada no ERP.
 
 | Area | Decisao | Evidencia |
 |---|---|---|
-| Arquitetura | Monolito modular Python/FastAPI para API e orquestracao IA. | [ADR-0001](equipe/tech-lead-senior/adrs/0001-arquitetura-aplicacao-ia-readonly-erp.md) |
-| Dados ERP | ERP RP Info e fonte primaria; aplicacao so acessa por camada read-only. | [ADR-0002](equipe/tech-lead-senior/adrs/0002-acesso-dados-erp-readonly-acuracia.md) |
-| Seguranca | Contas nominativas, RBAC e auditoria sem payload sensivel bruto. | [ADR-0003](equipe/tech-lead-senior/adrs/0003-seguranca-autenticacao-lgpd-auditoria.md) |
-| LLM | Haiku 4.5 padrao, Sonnet 4.5 opt-in, budget USD 30/mes e sem fallback silencioso. | [ADR-0005](equipe/tech-lead-senior/adrs/0005-llm-provider.md) |
-| Frontend | React 18 + Vite + TypeScript + Playwright em `src/frontend/`. | [ADR-0006](equipe/tech-lead-senior/adrs/0006-stack-frontend.md) |
-| Observabilidade | Promocao do alerta `monitorar-custo-llm` para runtime com cron e relatorios. | [ADR-0007](equipe/tech-lead-senior/adrs/0007-promocao-alerta-monitorar-custo-llm.md) |
-| Retencao | Audit metadado retido por 5 anos com purge futuro e base legal cumulativa. | [ADR-0008](equipe/tech-lead-senior/adrs/0008-retencao-formal-audit-metadado-5-anos.md) |
+| Arquitetura | Monolito modular Python/FastAPI para API e orquestracao IA. | [ADR-0001](docs/adr/0001-arquitetura-aplicacao-ia-readonly-erp.md) |
+| Dados ERP | ERP RP Info e fonte primaria; aplicacao so acessa por camada read-only. | [ADR-0002](docs/adr/0002-acesso-dados-erp-readonly-acuracia.md) |
+| Seguranca | Contas nominativas, RBAC e auditoria sem payload sensivel bruto. | [ADR-0003](docs/adr/0003-seguranca-autenticacao-lgpd-auditoria.md) |
+| LLM | Haiku 4.5 padrao, Sonnet 4.5 opt-in, budget USD 30/mes e sem fallback silencioso. | [ADR-0005](docs/adr/0005-llm-provider.md) |
+| Frontend | React 18 + Vite + TypeScript + Playwright em `src/frontend/`. | [ADR-0006](docs/adr/0006-stack-frontend.md) |
+| Observabilidade | Promocao do alerta `monitorar-custo-llm` para runtime com cron e relatorios. | [ADR-0007](docs/adr/0007-promocao-alerta-monitorar-custo-llm.md) |
+| Retencao | Audit metadado retido por 5 anos com purge futuro e base legal cumulativa. | [ADR-0008](docs/adr/0008-retencao-formal-audit-metadado-5-anos.md) |
 
 ## Dados em testes e exemplos
 
