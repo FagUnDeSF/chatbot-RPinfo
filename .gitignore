@@ -42,5 +42,10 @@ equipe/**
 handoffs/
 questionarios/
 
+# R-7 R6-LOW-01 - artefatos operacionais nao-portfolio
+memory/
+observability/llm/runtime/
+observability/llm/reports/
+
 # LGPD R-3 implicito: capturas/traces sensiveis devem ser publicados apenas
 # como copias sanitizadas fora de equipe/.
