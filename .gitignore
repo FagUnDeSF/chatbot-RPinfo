@@ -1,4 +1,6 @@
 .env
+.env*
+!.env.example
 .venv/
 __pycache__/
 *.py[cod]
@@ -22,10 +24,23 @@ src/frontend/.vite/
 *.dump
 *.bak
 *.log
+*.pem
+*.key
+secrets/
+credentials/
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+.npmrc
+.pypirc
 
 # Escritorio/dossie interno: nao publicar no repositorio publico da aplicacao.
 case-study/
 docs/
-equipe/
+equipe/**
 handoffs/
 questionarios/
+
+# LGPD R-3 implicito: capturas/traces sensiveis devem ser publicados apenas
+# como copias sanitizadas fora de equipe/.
