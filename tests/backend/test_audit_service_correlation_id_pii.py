@@ -52,7 +52,7 @@ def audit_service() -> AuditService:
         ("corr-cpf-fmt", "cpf-000.000.000-00-trace"),
         ("corr-cnpj-fmt", "trace-00.000.000/0000-00-leg"),
         ("corr-phone", "(11) 99999-9999"),
-        ("corr-email", "contato joao@empresa.com.br"),
+        ("corr-email", "contato joao@example.com"),
         ("corr-rg-sp", "rg-12.345.678-X"),
         ("corr-card-16", "4532 1234 5678 9012"),
         ("corr-digit-run", "trace1234567"),

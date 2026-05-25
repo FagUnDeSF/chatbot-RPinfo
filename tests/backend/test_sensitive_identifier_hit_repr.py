@@ -73,7 +73,7 @@ def test_detect_sensitive_identifier_retorna_hit_defensivo() -> None:
 
 def test_find_all_sensitive_identifiers_retorna_tuple_de_hits_defensivos() -> None:
     """`find_all_sensitive_identifiers` retorna tuple[SensitiveIdentifierHit, ...]."""
-    text = "Contato joao@empresa.com.br ou CPF 111.222.333-44"
+    text = "Contato joao@example.com ou CPF 111.222.333-44"
 
     hits = find_all_sensitive_identifiers(text)
     assert all(isinstance(h, SensitiveIdentifierHit) for h in hits)
@@ -83,7 +83,7 @@ def test_find_all_sensitive_identifiers_retorna_tuple_de_hits_defensivos() -> No
 
     # Defesa: serializar a sequencia inteira (caso caller faca log/print) NAO vaza PII.
     serialized_repr = repr(hits)
-    assert "joao@empresa.com.br" not in serialized_repr
+    assert "joao@example.com" not in serialized_repr
     assert "111.222.333-44" not in serialized_repr
     assert serialized_repr.count("***REDACTED***") == len(hits)
 
@@ -94,7 +94,7 @@ def test_redact_sensitive_identifiers_retorna_hits_defensivos() -> None:
     Texto redacted contem `[REDACTED-{kind}]`; lista de hits e do tipo
     defensivo + serializavel sem vazar PII.
     """
-    sentinel_email = "decio@supermercado.com.br"
+    sentinel_email = "decio@example.com"
     text = f"contato {sentinel_email} entrega atrasada"
 
     redacted, hits = redact_sensitive_identifiers(text)

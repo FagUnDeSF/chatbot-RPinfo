@@ -51,7 +51,7 @@ contribuintes: qa-senior, tech-lead-senior, security-engineer-senior
 **Finding ancorado (preservado para historico):**
 
 - **File:** `src/backend/chatbot_rpinfo/domain/policies/sensitive_data_policy.py:12-17`
-- **Impact:** A CG-04 nao cita email literalmente, mas cita "identificador pessoal". A LGPD enquadra email como dado pessoal quando associado a pessoa natural. Reproducao QA 2026-05-22: `intent="contato joao@empresa.com.br"` retornou `201` e o email apareceu persistido. Severity rebaixada de HIGH para MEDIUM porque CG-04 nao cita literalmente; aguarda parecer Security/LGPD.
+- **Impact:** A CG-04 nao cita email literalmente, mas cita "identificador pessoal". A LGPD enquadra email como dado pessoal quando associado a pessoa natural. Reproducao QA 2026-05-22: `intent="contato joao@example.com"` retornou `201` e o email apareceu persistido. Severity rebaixada de HIGH para MEDIUM porque CG-04 nao cita literalmente; aguarda parecer Security/LGPD.
 - **Fix aplicado:** Adicionado `_EMAIL_RE = re.compile(r"[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}")` em `_PATTERNS` (entrada `("email", _EMAIL_RE)` posicionada antes de `("numeric_identifier_run", ...)`). Suite de teste adversarial estendida com 5 variantes (canonical, plus-addressing, subdomain, exotic-TLD, uppercase). Suite atual 36 PASS, coverage 97%.
 
 **Cross-link aos pareceres consolidados (decisao S2-C02 vocab fechado `incluir-email-na-policy`):**

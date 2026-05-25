@@ -245,7 +245,7 @@ casos_rp_info:
     expected_kind: card_br_16_digits
 
   - id: rp-004-email-no-question
-    question: "Email decio@supermercado.com.br tem pedidos abertos?"
+    question: "Email decio@example.com tem pedidos abertos?"
     expected_block: pii_detectado_pre_egress
     expected_kind: email
 
