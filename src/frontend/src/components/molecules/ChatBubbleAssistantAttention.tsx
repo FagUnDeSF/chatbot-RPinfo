@@ -21,7 +21,7 @@ export function ChatBubbleAssistantAttention({
   };
 
   return (
-    <article className="chat-bubble chat-bubble--assistant receipt receipt--attention" role="alert">
+    <div className="chat-bubble chat-bubble--assistant receipt receipt--attention" role="alert">
       <div className="attention-copy">
         <Icon name="attention" />
         <p>{message.message}</p>
@@ -32,6 +32,6 @@ export function ChatBubbleAssistantAttention({
         </Button>
       ) : null}
       <time>{message.timestamp}</time>
-    </article>
+    </div>
   );
 }
