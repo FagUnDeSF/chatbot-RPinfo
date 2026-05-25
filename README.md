@@ -47,6 +47,17 @@ de escrita automatizada no ERP.
 | Observabilidade | Promocao do alerta `monitorar-custo-llm` para runtime com cron e relatorios. | [ADR-0007](equipe/tech-lead-senior/adrs/0007-promocao-alerta-monitorar-custo-llm.md) |
 | Retencao | Audit metadado retido por 5 anos com purge futuro e base legal cumulativa. | [ADR-0008](equipe/tech-lead-senior/adrs/0008-retencao-formal-audit-metadado-5-anos.md) |
 
+## Dados em testes e exemplos
+
+Todos os identificadores que aparecem em testes, fixtures, prompts ou documentacao
+deste repositorio sao sinteticos ou pseudonimizados. Eles existem para validar
+regras de bloqueio e redacao de PII no orquestrador V5 e para demonstrar fluxos
+do chatbot; nenhum identificador refere-se a pessoa fisica real.
+
+Emails de exemplo, quando usados em fixtures ou documentacao, devem usar dominios
+reservados pela RFC 2606, como `example.com`, `example.org`, `example.net` ou
+`test.invalid`.
+
 ## Como rodar
 
 O passo-a-passo esta em [docs/getting-started.md](docs/getting-started.md).
