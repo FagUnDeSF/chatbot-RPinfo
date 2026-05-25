@@ -1,0 +1,91 @@
+{
+  "project": "chatbot-RPinfo",
+  "updated_at": "2026-05-21",
+  "maintained_by": "technical-writer-senior",
+  "entries": [
+    {
+      "id": "docs-root",
+      "title": "Documentacao",
+      "path": "docs/README.md",
+      "tipologia_diataxis": "reference"
+    },
+    {
+      "id": "product",
+      "title": "Produto",
+      "path": "docs/product/prd.md",
+      "tipologia_diataxis": "explanation"
+    },
+    {
+      "id": "planning",
+      "title": "Planejamento",
+      "path": "docs/planning/plano-sprints.md",
+      "tipologia_diataxis": "reference"
+    },
+    {
+      "id": "adr",
+      "title": "ADRs",
+      "path": "docs/adr/README.md",
+      "tipologia_diataxis": "explanation"
+    },
+    {
+      "id": "runbooks",
+      "title": "Runbooks",
+      "path": "docs/runbooks/README.md",
+      "tipologia_diataxis": "how-to"
+    },
+    {
+      "id": "releases",
+      "title": "Releases",
+      "path": "docs/releases/README.md",
+      "tipologia_diataxis": "reference"
+    },
+    {
+      "id": "getting-started",
+      "title": "Getting started",
+      "path": "docs/getting-started.md",
+      "tipologia_diataxis": "how-to"
+    },
+    {
+      "id": "architecture",
+      "title": "Arquitetura",
+      "path": "docs/architecture.md",
+      "tipologia_diataxis": "explanation"
+    },
+    {
+      "id": "adrs-index",
+      "title": "ADRs index",
+      "path": "docs/adrs-index.md",
+      "tipologia_diataxis": "reference"
+    },
+    {
+      "id": "manual",
+      "title": "Manual",
+      "path": "docs/manual/README.md",
+      "tipologia_diataxis": "tutorial"
+    },
+    {
+      "id": "api",
+      "title": "API",
+      "path": "docs/api/README.md",
+      "tipologia_diataxis": "reference"
+    },
+    {
+      "id": "integration",
+      "title": "Integracoes",
+      "path": "docs/integration/README.md",
+      "tipologia_diataxis": "reference"
+    },
+    {
+      "id": "security",
+      "title": "Seguranca",
+      "path": "docs/security/README.md",
+      "tipologia_diataxis": "reference"
+    },
+    {
+      "id": "glossario",
+      "title": "Glossario",
+      "path": "docs/glossario.md",
+      "tipologia_diataxis": "reference"
+    }
+  ]
+}
